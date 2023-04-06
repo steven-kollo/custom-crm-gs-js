@@ -1,1 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= includeExternalFile("scripts_LoadConsts") ?>
+    <?!= includeExternalFile("style") ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="canonical" href="https://icons.getbootstrap.com/">
+    <?!= includeExternalFile("scripts_Filters") ?>
+    <?!= includeExternalFile("scripts_BeautifulTable") ?>
+    <?!= includeExternalFile("scripts_Details") ?>
+  </head>
+  <body style="background-color: #f7f7f7;">
+    <div> 
+      <!-- MOBILE DEVICE TYPE -->
+      <div id="mobile-container">
+        <div class="d-flex justify-content-between" style="margin: 10px;">
+          <?!= createHeaderButtons(true) ?>
+        </div>
+        <div style="margin: 10px;">
+          <?!= create_Filters() ?>
+        </div>
+        <?!= createFilterCheckboxes(true) ?>
+        <div id="table-section">
+          <?!= createBeautifulTable(" WHERE order_delivery_date >= CURRENT_DATE('-04')", false, true) ?>
+        </div>
+        <script>
+          $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+          })
+        </script>
+      </div>
 
+      <!-- DESKTOP DEVICE TYPE -->
+      <div id="desktop-container">
+        <div class="d-flex flex-row justify-content-between" style="margin: 10px;">
+          <?!= create_Filters(false) ?>
+          <div class="d-flex align-items-end">
+            <?!= createHeaderButtons(false) ?>
+          </div>
+        </div>
+        <?!= createFilterCheckboxes(false) ?>
+        <div id="table-section">
+          <?!= createBeautifulTable(" WHERE order_delivery_date >= CURRENT_DATE('-04')", false, false) ?>
+        </div>
+        <script>
+          $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+          })
+        </script>
+      </div>
+
+      <!-- CHECK DEVICE TYPE -->
+      <script>
+        window.screen.width >= 600 ? (
+          document.getElementById(`mobile-container`).remove()
+        ) : (
+          document.getElementById(`desktop-container`).remove()
+          )
+        waitForConsts()
+        function waitForConsts() {
+          if(CONSTS == undefined) {
+            setTimeout(waitForConsts, 500)
+          } else {
+            if(window.screen.width >= 600) {
+              CONSTS.if_mobile = false
+            } else {
+              CONSTS.if_mobile = true
+            }
+          }
+        }
+      </script>
+    </div>
+  </body>
+</html>
