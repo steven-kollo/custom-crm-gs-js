@@ -1,3 +1,7 @@
+// THIS IS A SEPARATE SCRIPT
+// It's running on business main GDrive with access to Gmail where Delivery Services notifications are. 
+// Data is sent using webhook to the main Gmail Service on new delivery order received 
+
 function sendNewOrdersToMain(orders) {
   const options = {
     'method' : 'post',
