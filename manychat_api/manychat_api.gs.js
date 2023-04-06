@@ -9,8 +9,8 @@ function createInfoFromOrder(order, local_id) {
     price: Number(order.order_price) + Number(order.order_shipping_price),
     date_delivery: order.order_delivery_date,
     time_delivery: order.order_delivery_time_range,
-    source: "Shopify",
-    order_url: `https://******.myshopify.com/admin/orders/${order.shopify_order_id_long}`
+    source: order.source,
+    order_url: order.source_url,
   }
 }
 
