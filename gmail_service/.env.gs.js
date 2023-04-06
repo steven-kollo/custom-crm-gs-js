@@ -1,3 +1,7 @@
+// THIS IS A SEPARATE FILE
+// It's on business's main GDrive with access to Gmail where Delivery Services notifications are. 
+// Data is sent using webhook to the main Gmail Service on new delivery order received 
+
 const MAIN_WEBHOOK_READER_URL = 'https://script.google.com/macros/s/******/exec'
 const LAST_MESSAGE_ID_SHEET_URL = "https://docs.google.com/spreadsheets/d/******/edit#gid=0"
 const SHOP_ID = "******";
