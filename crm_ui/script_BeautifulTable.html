@@ -1,0 +1,102 @@
+<script>
+  function onChangeStatusModal(uuid, status, current_status) {
+    if(current_status == 'new') {
+      document.getElementById(`details-${uuid}`).removeAttribute("onclick")
+    }
+    console.log(`confirm-status-${status}-${uuid}`)
+    google.script.run.withSuccessHandler(orderStatusSuccess).update_OrderStatus(
+      uuid, 
+      status, 
+      current_status
+    )
+    function orderStatusSuccess(res) {
+      console.log(res)
+      document.getElementById('order-status-'+res.uuid).parentNode.innerHTML = res.html_element
+      document.getElementById('status-'+res.uuid).parentNode.innerHTML = res.html_element
+    }
+  }
+
+  function confirmPaymentStatus(uuid) {
+    google.script.run.withSuccessHandler(paymentStatusSuccess).update_PaymentStatus(uuid)
+    document.getElementById(`payment-status-${uuid}`).disabled = "disabled"
+  }
+
+  function paymentStatusSuccess(res) {
+    document.getElementById('payment-status-'+res.uuid).className = 'btn btn-success btn-sm'
+    document.getElementById('payment-status-'+res.uuid).innerHTML = CONSTS.ui_statuses.payment_status_is_paid
+    document.getElementById('payment-status-'+res.uuid).disabled = "disabled"
+    document.getElementById('dot-'+res.uuid).style = "display: none;"
+  }
+</script>
+
+<script>
+  function createManualOrderButton() {
+    let manual_order = {
+      client_first_name: document.getElementById('input-manual-client-name').value,
+      client_last_name: document.getElementById('input-manual-client-last-name').value,
+      client_phone: document.getElementById('input-manual-client-phone').value,
+      client_email: document.getElementById('input-manual-client-email').value,
+      order_product: document.getElementById('input-manual-product').value,
+      order_price: document.getElementById('input-manual-price').value,
+      order_shipping_price: document.getElementById('input-manual-price-delivery').value,
+      order_address: document.getElementById('input-manual-address-delivery').value,
+      order_delivery_date: document.getElementById('input-manual-date-delivery').value,
+      order_delivery_time_range: document.getElementById('input-manual-time-delivery').value,
+      order_comuna: document.getElementById('input-manual-comuna-delivery').value,
+      order_recipient_name: document.getElementById('input-manual-recipient-name').value,
+      order_recipient_phone: document.getElementById('input-manual-recipient-phone').value,
+      order_manager_comment: document.getElementById('input-manual-comment').value,
+      order_recipient_postcard_text: document.getElementById('input-manual-postcard').value
+    }
+    console.log(manual_order)
+    google.script.run.withSuccessHandler(manualOrderSuccess).insertManualOrder(manual_order)
+  }
+
+  function manualOrderSuccess(res) {
+    console.log(res)
+    document.getElementById("manual-order-success-alert").style = "display: block; color: green; font-size: 12px;"
+    document.getElementById("create-manual-order-button").style = "display: none"
+  }
+
+  let custom_order_url = ""
+  function createOrderButton() {
+    const data = {
+      product_name: document.getElementById("inputProduct").value,
+      price: document.getElementById("inputPrice").value
+    }
+    if (data.product_name.length > 0 && data.price > 0) {
+      document.getElementById("product-form").style = "display: none;"
+      document.getElementById("create-order-button").disabled = true
+      document.getElementById("order-loading").style = "display: inline;"
+      google.script.run.withSuccessHandler(displayProductSuccess).shopify_CreateCustomOrder(data)
+    } 
+  }
+  
+  function copyCreatedOrderLinkButton() {
+    const copyContent = async () => {
+      try {
+        await navigator.clipboard.writeText(custom_order_url);
+        console.log('Content copied to clipboard');
+        document.getElementById("copy-link-button").disabled = true
+        document.getElementById("copy-link-button").innerText = CONSTS.ui_statuses.link_copied
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+    }
+    copyContent()
+  }
+
+
+  function displayProductSuccess(res) {
+    if(res.error != false) {
+      console.log(res.error)
+    } else {
+      document.getElementById("order-loading").style = "display: none;"
+      document.getElementById("create-order-button").style = "display: none;"
+      document.getElementById("copy-link-button").style = "display: inline;"
+      document.getElementById("on-load").style = "display: inline;"
+      console.log(res)
+      custom_order_url = res.url
+    }
+  }
+</script>
