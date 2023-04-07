@@ -1,0 +1,98 @@
+<script>
+  function addComment(uuid) {
+    if (document.getElementById(`comment-input-addon-${uuid}`).value == "") return
+    google.script.run.withSuccessHandler(updateManagerCommentsSuccess).update_ManagerComments(uuid, document.getElementById(`comment-input-addon-${uuid}`).value)
+  }
+  
+  function updateManagerCommentsSuccess(res) {
+    document.getElementsByClassName('manager-comments-'+res.uuid)[0].parentNode.innerHTML = res.updated_json_html
+    document.getElementsByClassName('manager-comments-'+res.uuid)[1].parentNode.innerHTML = res.updated_json_html
+  }
+</script>
+
+<script>
+  function createSingleOrderPDF(uuid) {
+    if(document.getElementById(`create-pdf-${uuid}`).innerText == CONSTS.order_details_modal.create_pdf) {
+      google.script.run.withSuccessHandler(displaySinglePrintSuccess).createPDF(uuid)
+      document.getElementById(`create-pdf-${uuid}`).disabled = true
+    }
+  }
+
+  function displaySinglePrintSuccess(res) {
+    console.log(res)
+    const copyContent = async () => {
+      try {
+        await navigator.clipboard.writeText(res.gdrive_link);
+        console.log('Content copied to clipboard');
+        document.getElementById(`create-pdf-${res.uuid}`).disabled = true
+        document.getElementById(`create-pdf-${res.uuid}`).innerText = CONSTS.order_details_modal.link_copied
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+    }
+    document.getElementById(`create-pdf-${res.uuid}`).disabled = false
+    document.getElementById(`create-pdf-${res.uuid}`).addEventListener("click", copyContent)
+    document.getElementById(`create-pdf-${res.uuid}`).innerText = CONSTS.order_details_modal.copy_link
+  }
+</script>
+
+<script>
+  function deleteOrderByUuid(uuid) {
+    google.script.run.withSuccessHandler(displayDeleteOrderSuccess).delete_Order(uuid)
+  }
+  function displayDeleteOrderSuccess(res) {
+    console.log(res)
+    document.getElementById(`order-deleted-alert-${res}`).style = "display: block; color: red; margin-top: 10px; font-size: 12px;"
+  }
+</script>
+
+<script>
+  function updateOrder(uuid) {
+    const order_data = {
+      client_name: document.getElementById(`input-manual-client-name-${uuid}`).value,
+      client_last_name: document.getElementById(`input-manual-client-last-name-${uuid}`).value,
+      client_phone: document.getElementById(`input-manual-client-phone-${uuid}`).value,
+      client_email: document.getElementById(`input-manual-client-email-${uuid}`).value,
+      product: document.getElementById(`input-manual-product-${uuid}`).value,
+      price: document.getElementById(`input-manual-price-${uuid}`).value,
+      shipping_price: document.getElementById(`input-manual-price-delivery-${uuid}`).value,
+      address: document.getElementById(`input-manual-address-delivery-${uuid}`).value,
+      date_delivery: document.getElementById(`input-manual-date-delivery-${uuid}`).value,
+      time_delivery: document.getElementById(`input-manual-time-delivery-${uuid}`).value,
+      comuna: document.getElementById(`input-manual-comuna-delivery-${uuid}`).value,
+      recipient_name: document.getElementById(`input-manual-recipient-name-${uuid}`).value,
+      recipient_phone: document.getElementById(`input-manual-recipient-phone-${uuid}`).value,
+      postcard: document.getElementById(`input-manual-postcard-${uuid}`).value
+    }
+    console.log(createUpdateQuery(order_data, uuid))
+    document.getElementById(`update-order-${uuid}`).disabled = true
+    google.script.run.withSuccessHandler(displayOrderUpdateQuerySuccess).updateOrderByUuid(createUpdateQuery(order_data, uuid), uuid)
+  }
+
+  function createUpdateQuery(order_data, uuid) {
+    return "UPDATE `florissimo-378500.main.orders` " + `
+    SET 
+    client_first_name = "${order_data.client_name}",
+    client_last_name = "${order_data.client_last_name}",
+    client_phone = "${order_data.client_phone}",
+    client_email = "${order_data.client_email}",
+    order_product = "${order_data.product}",
+    order_price = ${Number(order_data.price)},
+    order_shipping_price = ${Number(order_data.shipping_price)},
+    order_delivery_address = "${order_data.address}",
+    order_delivery_date = CAST("${order_data.date_delivery}" AS DATE),
+    order_delivery_time_range = "${order_data.time_delivery}",
+    order_delivery_comuna = "${order_data.comuna}",
+    order_recipient_name = "${order_data.recipient_name}",
+    order_recipient_phone = "${order_data.recipient_phone}",
+    order_recipient_postcard_text = "${order_data.postcard}"
+    WHERE uuid = "${uuid}"
+    `  
+  }
+
+  function displayOrderUpdateQuerySuccess(res) {
+    document.getElementById(`update-order-${res}`)
+    document.getElementById(`order-update-success-alert-${res}`).style = "display: block; color: green; font-size: 12px;"
+    console.log(res)
+  }
+</script>
