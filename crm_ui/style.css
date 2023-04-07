@@ -1,7 +1,7 @@
-table{
-    width:100%;
-    table-layout: fixed;
-  }
+    table{
+      width:100%;
+      table-layout: fixed;
+    }
     .tbl-header{
       background-color: #c9ddf5;
     }
