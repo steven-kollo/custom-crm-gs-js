@@ -1,0 +1,8 @@
+<script>
+  let CONSTS
+  google.script.run.withSuccessHandler(displayLoadConstsSuccess).loadConsts()
+  function displayLoadConstsSuccess(res) {
+    console.log(res)
+    CONSTS = res
+  }
+</script>
