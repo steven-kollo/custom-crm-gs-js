@@ -1,0 +1,173 @@
+<script>
+function checkboxSelectAll() {
+  let checked = document.getElementById('search-check-all').checked
+  let all_checks = document.getElementsByClassName('search-check')
+      
+  for (let check of all_checks) {
+    check.checked = checked
+  }
+}
+</script>
+
+<!-- RELOAD TABLE -->
+<script>
+  function setWhereStatement(filter) {
+    let ACTUAL_ORDERS_SQL = ""
+    if (filter.actual_orders == false) {
+      if(filter.all_orders == false) {
+        ACTUAL_ORDERS_SQL = "order_delivery_date >= CURRENT_DATE('-04')"
+      }
+    } else {
+      ACTUAL_ORDERS_SQL = "order_delivery_date = CURRENT_DATE('-04')"
+    }
+    let DATE_START_SQL = filter.date_start == false ? "" : "order_delivery_date>='"+filter.date_start+"'"
+    let DATE_END_SQL = filter.date_end == false ? "" : "order_delivery_date<='"+filter.date_end+"'"
+    let SERVICE_SQL = filter.service == false ? "" : "order_service='"+filter.service+"'"
+    let ORDER_STATUS = filter.order_status == false ? "" : "order_status='"+filter.order_status+"'"
+    let ORDER_IS_PAID = filter.is_paid == false ? "" : "order_is_paid = false"
+    let FILTER = [
+      ORDER_IS_PAID,
+      ORDER_STATUS,
+      ACTUAL_ORDERS_SQL,
+      DATE_START_SQL,
+      DATE_END_SQL,
+      SERVICE_SQL
+    ]
+    
+    let WHERE_STATEMENT = " WHERE "
+    FILTER.forEach(item => {
+      if (item.length == 0) { return }
+      if(WHERE_STATEMENT.length > 7) {
+        WHERE_STATEMENT += " AND "
+        WHERE_STATEMENT += item
+      } else {
+        WHERE_STATEMENT += item
+      }
+    })
+    if(WHERE_STATEMENT == " WHERE ") {
+      WHERE_STATEMENT = ""
+    }
+    google.script.run.withSuccessHandler(displayFilterQuerySuccess).createBeautifulTableHtml(
+      WHERE_STATEMENT, 
+      false,
+      CONSTS.if_mobile
+    )
+  }
+
+  function displayFilterQuerySuccess(res) {
+    document.getElementById("table-section").innerHTML = res
+  }
+
+  function runFilteredQuery() {
+    const filter = {
+      order_status: document.getElementById("filter-order-status").value == "any" ? false : document.getElementById("filter-order-status").value,
+      actual_orders: document.getElementById('actual-orders-сheck').checked,
+      date_start: document.getElementById("filter-dateStart").value != "" ? document.getElementById("filter-dateStart").value : false,
+      date_end: document.getElementById("filter-dateEnd").value != "" ? document.getElementById("filter-dateEnd").value : false,
+      service: document.getElementById("filter-service").value == "any" ? false : document.getElementById("filter-service").value,
+      is_paid: document.getElementById('need-payment-confirm-сheck').checked,
+      all_orders: document.getElementById('show-all-orders-сheck').checked
+    }
+    console.log(filter)
+    setWhereStatement(filter)
+  }
+
+  function getSelectedUuids(type) {
+    const checkboxes = document.getElementsByClassName('search-check')
+    let checked_uuid_array = []
+    Array.prototype.forEach.call(checkboxes, function(check) {
+      if(check.checked && check.id.toString().slice(13) != "all") {
+        checked_uuid_array.push(check.id.toString().slice(13))
+      }
+    })
+    if (checked_uuid_array.length == 0) return
+    switch(type) {
+      case "list":
+        console.log("list")
+        console.log(checked_uuid_array)
+        document.getElementById('print-selected-orders-button').disabled = true
+        google.script.run.withSuccessHandler(createSelectedOrdersPdfSuccess).createSelectedOrdersPDF(checked_uuid_array)
+        break
+      case "postcards":
+        console.log("postcards")
+        console.log(checked_uuid_array)
+        document.getElementById('print-selected-orders-postcards-button').disabled = true
+        google.script.run.withSuccessHandler(reload_Drive).createSelectedOrdersPostcardsPDF(checked_uuid_array)
+        break
+      case "details":
+        console.log("details")
+        console.log(checked_uuid_array)
+        document.getElementById('print-selected-orders-details-button').disabled = true
+        google.script.run.withSuccessHandler(createSelectedOrdersDetailsPdfSuccess).createSelectedOrdersDetailsPDF(checked_uuid_array)
+        break
+    }
+  }
+  // Bug in DriveApp requires to do this, otherwise previous view will be converted to pdf
+  function reload_Drive() {
+    google.script.run.withSuccessHandler(createSelectedOrdersPostcardsPdfSuccess).createPostcardPdf()
+  }
+
+  function createSelectedOrdersPostcardsPdfSuccess(res) {
+    console.log(res)
+    document.getElementById('print-selected-orders-postcards-button').parentNode.innerHTML = `
+      <a onclick="reloadPrintPostcardsButton()" href="${res}" target="_blank" id="print-selected-orders-postcards-button"><button type="button" class="btn btn-primary">
+        ${CONSTS.ui_statuses.open_document_postcards}
+      </button></a>               
+    `
+  }
+
+  function reloadPrintPostcardsButton(){
+    document.getElementById('print-selected-orders-postcards-button').parentNode.innerHTML = `
+      <button id="print-selected-orders-postcards-button" class="btn btn-primary" type="button" onclick="getSelectedUuids('postcards')">
+        <span class="sr-only">${CONSTS.ui_statuses.print_selected_orders_postcards_button}</span>
+      </button> 
+    `
+  }
+
+  function createSelectedOrdersDetailsPdfSuccess(res) {
+    console.log(res)
+    document.getElementById('print-selected-orders-details-button').parentNode.innerHTML = `
+      <a href="${res.gdrive_link}" target="_blank" onclick="reloadPrintDetailsButton()" id="print-selected-orders-details-button"><button type="button" class="btn btn-primary">
+        ${CONSTS.ui_statuses.open_document_details}
+      </button></a>               
+    `
+  }
+
+  function reloadPrintDetailsButton(){
+    document.getElementById('print-selected-orders-details-button').parentNode.innerHTML = `
+      <button id="print-selected-orders-details-button" class="btn btn-primary" type="button" onclick="getSelectedUuids('details')">
+        <span class="sr-only">${CONSTS.ui_statuses.print_selected_orders_details_button}</span>
+      </button> 
+    `
+  }
+
+  function createSelectedOrdersPdfSuccess(res) {
+    console.log(res)
+    document.getElementById('print-selected-orders-button').parentNode.innerHTML = `
+      <a href="${res.gdrive_link}" target="_blank" onclick="reloadPrintListButton()" id="print-selected-orders-button"><button type="button" class="btn btn-primary">
+        ${CONSTS.ui_statuses.open_document_list}
+      </button></a>               
+    `
+  }
+
+  function reloadPrintListButton(){
+    document.getElementById('print-selected-orders-button').parentNode.innerHTML = `
+      <button id="print-selected-orders-button" class="btn btn-primary" type="button" onclick="getSelectedUuids('list')">
+        <span class="sr-only">${CONSTS.ui_statuses.print_selected_orders_list_button}</span>
+      </button> 
+    `
+  }
+</script>
+
+<script>
+  function getOrdersBySearchId() {
+    const search_key = document.getElementById("input-search-id").value
+    if(search_key == "") {
+      runFilteredQuery()
+      return
+    }
+    console.log(search_key)
+    WHERE_STATEMENT = ` WHERE order_search_id LIKE '%${search_key}%'`
+    google.script.run.withSuccessHandler(displayFilterQuerySuccess).createBeautifulTableHtml(WHERE_STATEMENT, false, CONSTS.if_mobile)
+  }
+</script>
