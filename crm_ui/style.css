@@ -1,0 +1,75 @@
+table{
+    width:100%;
+    table-layout: fixed;
+  }
+    .tbl-header{
+      background-color: #c9ddf5;
+    }
+    .tbl-content{
+      height: 500px;
+      overflow-x: hidden;
+      margin-top: 0px;
+      border: 1px solid rgba(216,227,240,1);
+    }
+    .main-table-th, .main-table-td {
+      overflow-x: hidden;
+      padding: 8px;
+      text-align: center;
+      vertical-align:middle;
+      font-size: 14px;
+      color: #525252;
+    }
+    .main-table-th{
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+    .main-table-td{
+      font-weight: 400;
+      border-bottom: solid 1px rgba(216,227,240,1);
+    }
+    .main-table-tr:nth-child(even){background-color: #e4eaf2;}
+
+
+    /* demo styles */
+
+    @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,300,700);
+    body{
+      
+    }
+
+    /* for custom scrollbar for webkit browser*/
+
+    ::-webkit-scrollbar {
+        width: 0px;
+    } 
+    ::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    } 
+    ::-webkit-scrollbar-thumb {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    }
+
+  .details-btn {
+    background-color: #0d6efd;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    padding: 4px 15px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .dot {
+    position: relative;
+    bottom: 10px;
+    right: 10px;
+    margin-right: -15px;
+    height: 15px;
+    width: 15px;
+    background-color: red;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .details-btn:hover {
+    background-color: RoyalBlue;
+  }
